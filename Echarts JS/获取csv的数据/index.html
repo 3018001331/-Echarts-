@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html ng-app="myApp">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Reading Csv</title>
+    <meta name="viewport" content="width=device-width,initial-scale=10" />
+
+    <script src="js/angular.min.js"></script>
+    <script src="js/customjs.js"></script>
+    <script src="js/jquery-3.3.1.min.js"></script>
+   
+    <style type="text/css">
+        table, th, td {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+
+<body ng-controller="MyController">
+    <div>
+        <form enctype="multipart/form-data">
+            <!-- 创建隐藏file input -->
+            <button type="button" name="seach" οnclick="FuncCSVInport()">CSV Import</button>
+            <input type="file" id="csvFileInput" οnchange="readCSVFile(this)" />
+            
+        </form>
+    </div>
+</body>
+
+</html>

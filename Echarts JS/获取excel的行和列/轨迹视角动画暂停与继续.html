@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <title>轨迹视角动画暂停与继续</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <input type="file" id="excel-file">
+    <style>
+    body,
+    html,
+    #container {
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        font-family: "微软雅黑";
+    }
+    ul li {
+        list-style: none;
+    }
+    .drawing-panel {
+        z-index: 999;
+        position: fixed;
+        bottom: 3.5rem;
+        margin-left: 3rem;
+        padding: 1rem 1rem;
+        border-radius: .25rem;
+        background-color: #fff;
+        box-shadow: 0 2px 6px 0 rgba(27, 142, 236, 0.5);
+    }
+    .btn {
+        width: 90px;
+        height: 30px;
+        float: left;
+        background-color: #fff;
+        color: rgba(27, 142, 236, 1);
+        font-size: 14px;
+        border:1px solid rgba(27, 142, 236, 1);
+        border-radius: 5px;
+        margin: 0 5px;
+        text-align: center;
+        line-height: 30px;
+    }
+    .btn:hover {
+        background-color: rgba(27, 142, 236, 0.8);
+        color: #fff;
+    }
+    </style>
+    <script src="https://mapopen.bj.bcebos.com/github/BMapGLLib/TrackAnimation/src/TrackAnimation.min.js"></script>
+    <script src="https://api.map.baidu.com/api?type=webgl&v=1.0&ak=IzNwFo71aANXlPF1yEHQ6YPaD76Eh2dk"></script>
+    <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.js"></script>
+    <script src="https://cdn.bootcss.com/xlsx/0.11.5/xlsx.core.min.js"></script>
+
+</head>
+
+<body>
+<input type="file" id="excel-file">
+<textarea id="area"></textarea>
+    <div id="container"></div>
+    <ul class="drawing-panel" style="z-index: 99;">
+        <li class = "btn" onclick = "pauseAni()">暂停</li>
+        <li class = "btn" onclick = "continueAni()">继续</li>
+    </ul>
+</body>
+</html>
+
+<script>
+
+    //��input��ǩ��change�¼���һ�ϴ�ѡ�е�.xls�ļ��ͻᴥ���ú���
+    $('#excel-file').change(function(e) {
+        var files = e.target.files;
+        var fileReader = new FileReader();
+        fileReader.onload = function(ev) {
+            try {
+                var data = ev.target.result
+                var workbook = XLSX.read(data, {
+                    type: 'binary'
+                }) // �Զ���������ʽ��ȡ�õ�����excel�������
+                var persons = []; // �洢��ȡ��������
+            } catch (e) {
+                console.log('�ļ����Ͳ���ȷ');
+                return;
+            }
+            // ����ı���Χ���������жϱ�ͷ�Ƿ������Ƿ���ȷ
+            var fromTo = '';
+            // ����ÿ�ű���ȡ
+            for (var sheet in workbook.Sheets) {
+                if (workbook.Sheets.hasOwnProperty(sheet)) {
+                    fromTo = workbook.Sheets[sheet]['!ref'];
+                    console.log(fromTo);
+                    persons = persons.concat(XLSX.utils.sheet_to_json(workbook.Sheets[sheet]));
+                    //break; // ���ֻȡ��һ�ű�����ȡ��ע������
+                }
+            }
+            //�ڿ���̨��ӡ���������е�����
+            console.log(persons);
+			var point = [];
+			for (var i = 0; i < persons.length; i++) {
+			    point.push("'lng':"+"'"+persons[i].LNGB+"'", "'lat':"+"'"+persons[i].LATB+"'");
+			}
+            $("#area").val("["+point+"]");
+        };
+        // �Զ����Ʒ�ʽ���ļ�
+        fileReader.readAsBinaryString(files[0]);
+    });
+
+
+var bmap = new BMapGL.Map("container");
+bmap.centerAndZoom(new BMapGL.Point(117.328655, 39.003123), 17);
+bmap.enableScrollWheelZoom(true);
+
+var pl = new BMapGL.Polyline(point);
+setTimeout('start()', 3000);
+trackAni = new BMapGLLib.TrackAnimation(bmap, pl, {
+    overallView: true,
+    tilt: 30,
+    duration: 20000,
+    delay: 300
+});
+function start () {
+    trackAni.start();
+}
+function pauseAni () {
+    trackAni.pause();
+}
+function continueAni () {
+    trackAni.continue();
+}
+</script>

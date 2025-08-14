@@ -1,0 +1,96 @@
+<html>
+	<head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>点击无人车变速</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0,maximum-scale=1.3, user-scalable=no">
+        <meta name="description" content="百度地图 API 制作路书">
+        <meta name="keywords" content="百度 API">
+        <meta name="author" content="wg">
+        <style>
+            html,body,#map{
+                height: 100%;
+                width: 100%;
+                margin: 0;
+            }
+        </style>
+        <script src="http://api.map.baidu.com/api?v=1.4"></script>
+		<script type="text/javascript" src="http://api.map.baidu.com/getscript?v=2.0&amp;ak=bB8H5rgknsMqiKIDV0ALeuocIbXd6Uro&amp;services=&amp;t=20171004185957"></script>
+        <script src="http://api.map.baidu.com/library/LuShu/1.2/src/LuShu_min.js"></script>
+    <body>
+		<div id="map"></div>        
+		<script>
+            var bmap = document.getElementById('map');
+            var map = new BMap.Map("map");			
+			map.enableScrollWheelZoom(true);     //开启鼠标滚轮缩放
+            map.centerAndZoom(new BMap.Point(117.326809,39.00321), 17);
+            var point = new BMap.Point(117.326809,39.00321);
+            var points = [  
+                new BMap.Point(117.331231,39.002533),
+                new BMap.Point(117.329266,39.002786), 
+                new BMap.Point(117.328655,39.003123), 
+                new BMap.Point(117.321666,39.003095),
+                new BMap.Point(117.319636,39.003067), 
+                new BMap.Point(117.318558,39.003053), 
+                new BMap.Point(117.317768,39.003039), 
+                new BMap.Point(117.317103,39.003039), 
+                new BMap.Point(117.317588,39.002523), 
+                new BMap.Point(117.317597,39.001907)
+                
+            ];
+            
+            var markers = [
+                points[0],//东门
+                points[2],//宣怀广场
+                points[6],//大通学生中心
+                points[9]//太雷广场
+            ];
+           
+            //用站点画出路线，参数：站点、线路颜色、线路宽度、透明度
+	    	var polyline = new BMap.Polyline(points, {strokeColor:"#5298ff", strokeWeight:6, strokeOpacity:0.8}); 
+           			
+            map.addOverlay(polyline);//添加轨迹到地图
+			
+            var lushu = new BMapLib.LuShu(map, points, {
+				//landmarkPois:此参数是路书移动的时候碰到这个点会触发pauseTime停留中设置的时间，单位为秒，经纬度误差超过十米不会停止
+                landmarkPois:[
+                    {lng:markers[0].lng,lat:markers[0].lat,html:'<img src="http://lbsyun.baidu.com/jsdemo/img/trans_icons.png" /></br>东门',pauseTime:1},
+                    {lng:markers[1].lng,lat:markers[1].lat,html:'到达宣怀广场',pauseTime:1},
+                    {lng:markers[2].lng,lat:markers[2].lat,html:'到达大通学生中心',pauseTime:1},
+                    {lng:markers[3].lng,lat:markers[3].lat,html:'到达太雷广场',pauseTime:1}
+                ],
+                defaultContent: '无人车继续前行，况且况且...',
+                speed: 100,//速度，单位米每秒
+				/* 1、需要把图片和代码放在同一个文件夹下面
+				 * 2、size()是设置图片大小，图片过大可以截取
+				 * 3、anchor是设置偏移，默认是图片最中间，设置偏移目的是让图片底部中间与坐标重合
+				 */
+                icon: new BMap.Icon("https://lbsyun.baidu.com//jsdemo/img/car.png", new BMap.Size(32, 70), {anchor: new BMap.Size(24, 34)}),//声明高铁标注
+                autoView: false,
+                enableRotation: false
+            });
+            
+            var icon = new BMap.Icon('http://lbsyun.baidu.com/jsdemo/img/dest_markers.png', new BMap.Size(30,25),{anchor: new BMap.Size(22, 25)});//声明站点标注
+            for (i=0;i<markers.length;i++){
+                map.addOverlay(new BMap.Marker(markers[i],{icon:icon}));//添加站点marker
+            }
+            map.centerAndZoom(point, 17	);//设置中心点和级别（级别是1-20）数字越大越是放大
+			
+			lushu.start();
+			//添加路书点击事件，并改变其运动速度
+			map.addEventListener('click',startlushu);
+            function startlushu(e){
+                if (!!e.overlay) {
+                    var markerId = lushu._marker.ba;
+                    if (e.overlay.ba == markerId) {
+                        alert('你点击了无人机，速度即将变快');
+                        lushu._opts.speed = lushu._opts.speed+200;
+                    }
+                } 
+            }
+			
+        </script>
+    
+
+	</body>
+</html>

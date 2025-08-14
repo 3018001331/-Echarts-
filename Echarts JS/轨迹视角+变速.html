@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <title>轨迹动画暂停与继续+变速</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+
+    <style>
+    body,
+    html,
+    #container {
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        font-family: "微软雅黑";
+    }
+    ul li {
+        list-style: none;
+    }
+    .drawing-panel {
+        z-index: 999;
+        position: fixed;
+        bottom: 3.5rem;
+        margin-left: 3rem;
+        padding: 1rem 1rem;
+        border-radius: .25rem;
+        background-color: #fff;
+        box-shadow: 0 2px 6px 0 rgba(27, 142, 236, 0.5);
+    }
+    .btn {
+        width: 90px;
+        height: 30px;
+        float: left;
+        background-color: #fff;
+        color: rgba(27, 142, 236, 1);
+        font-size: 14px;
+        border:1px solid rgba(27, 142, 236, 1);
+        border-radius: 5px;
+        margin: 0 5px;
+        text-align: center;
+        line-height: 30px;
+    }
+    .btn:hover {
+        background-color: rgba(27, 142, 236, 0.8);
+        color: #fff;
+    }
+    </style>
+	<script src="http://api.map.baidu.com/api?v=1.4"></script>	
+    <script src="https://mapopen.bj.bcebos.com/github/BMapGLLib/TrackAnimation/src/TrackAnimation.min.js"></script>
+    <script src="https://api.map.baidu.com/api?type=webgl&v=1.0&ak=IzNwFo71aANXlPF1yEHQ6YPaD76Eh2dk"></script>
+	
+	<script type="text/javascript" src="http://api.map.baidu.com/getscript?v=2.0&amp;ak=bB8H5rgknsMqiKIDV0ALeuocIbXd6Uro&amp;services=&amp;t=20171004185957"></script>
+	<script src="http://api.map.baidu.com/library/LuShu/1.2/src/LuShu_min.js"></script>
+</head>
+<body>
+	<div id="map"></div>
+    <div id="container"></div>
+    <ul class="drawing-panel" style="z-index: 99;">
+        <li class = "btn" onclick = "pauseAni()">暂停</li>
+        <li class = "btn" onclick = "continueAni()">继续</li>
+    </ul>
+</body>
+</html>
+
+<script>
+var bmap = new BMapGL.Map("container");
+bmap.centerAndZoom(new BMapGL.Point(117.331231, 39.002533), 17);
+bmap.enableScrollWheelZoom(true);
+            var map = new BMap.Map("map");			
+			map.enableScrollWheelZoom(true);     //开启鼠标滚轮缩放
+            map.centerAndZoom(new BMap.Point(117.326809,39.00321), 17);
+           var point1 = new BMap.Point(117.326809,39.00321);
+           var points = [  
+               new BMap.Point(117.331231,39.002533),
+               new BMap.Point(117.329266,39.002786), 
+               new BMap.Point(117.328655,39.003123), 
+               new BMap.Point(117.321666,39.003095),
+               new BMap.Point(117.319636,39.003067), 
+               new BMap.Point(117.318558,39.003053), 
+               new BMap.Point(117.317768,39.003039), 
+               new BMap.Point(117.317103,39.003039), 
+               new BMap.Point(117.317588,39.002523), 
+               new BMap.Point(117.317597,39.001907)
+               
+           ];
+
+var markers = [
+                points[0],//东门
+                points[2],//宣怀广场
+                points[3],//大通学生中心
+                points[6]//太雷广场
+            ];
+           
+//用站点画出路线，参数：站点、线路颜色、线路宽度、透明度
+var polyline = new BMap.Polyline(points, {strokeColor:"#5298ff", strokeWeight:6, strokeOpacity:0.8}); 
+           			
+map.addOverlay(polyline);//添加轨迹到地图
+			
+var lushu = new BMapLib.LuShu(map, points, {
+//landmarkPois:此参数是路书移动的时候碰到这个点会触发pauseTime停留中设置的时间，单位为秒，经纬度误差超过十米不会停止
+        landmarkPois:[
+                    {lng:markers[0].lng,lat:markers[0].lat,html:'<img src="http://lbsyun.baidu.com/jsdemo/img/trans_icons.png" /></br>东门',pauseTime:1},
+                    {lng:markers[1].lng,lat:markers[1].lat,html:'到达宣怀广场',pauseTime:1},
+                    {lng:markers[2].lng,lat:markers[2].lat,html:'到达大通学生中心',pauseTime:1},
+                    {lng:markers[3].lng,lat:markers[3].lat,html:'到达太雷广场',pauseTime:1}
+        ],
+        defaultContent: '无人车继续前行，况且况且...',
+        speed: 100,//速度，单位米每秒
+				/* 1、需要把图片和代码放在同一个文件夹下面
+				 * 2、size()是设置图片大小，图片过大可以截取
+				 * 3、anchor是设置偏移，默认是图片最中间，设置偏移目的是让图片底部中间与坐标重合
+				 */
+                icon: new BMap.Icon("https://lbsyun.baidu.com//jsdemo/img/car.png", new BMap.Size(32, 70), {anchor: new BMap.Size(24, 34)}),//声明高铁标注
+                autoView: false,
+                enableRotation: false
+ });
+            
+var icon = new BMap.Icon('http://lbsyun.baidu.com/jsdemo/img/dest_markers.png', new BMap.Size(30,25),{anchor: new BMap.Size(22, 25)});//声明站点标注
+            for (i=0;i<markers.length;i++){
+                map.addOverlay(new BMap.Marker(markers[i],{icon:icon}));//添加站点marker
+            }
+          //  map.centerAndZoom(point1, 17	);//设置中心点和级别（级别是1-20）数字越大越是放大
+			
+			lushu.start();
+			//添加路书点击事件，并改变其运动速度
+			map.addEventListener('click',startlushu);
+            function startlushu(e){
+                if (!!e.overlay) {
+                    var markerId = lushu._marker.ba;
+                    if (e.overlay.ba == markerId) {
+                        alert('你点击了无人机，速度即将变快');
+                        lushu._opts.speed = lushu._opts.speed+200;
+                    }
+                } 
+            }
+			
+var point = [];
+for (var i = 0; i < points.length; i++) {
+    point.push(new BMapGL.Point(points[i].lng, points[i].lat));
+}
+//var pl = new BMapGL.Polyline(point);
+var pl = new BMapGL.Polyline(point,{strokeColor:"blue", strokeWeight:6, strokeOpacity:0.5});
+setTimeout('start()', 1000);
+trackAni = new BMapGLLib.TrackAnimation(bmap, pl, {
+    overallView: true,
+    tilt: 30,
+    duration: 20000,
+    delay: 300
+});
+function start () {
+    trackAni.start();
+}
+function pauseAni () {
+    trackAni.pause();
+}
+function continueAni () {
+    trackAni.continue();
+}
+</script>
